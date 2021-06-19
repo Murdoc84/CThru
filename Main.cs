@@ -23,6 +23,7 @@ namespace CThru
         private int actualSizePercentage = 100;
         private float opacity = 1.0f;
         private bool nowClickableThrough = false;
+        private bool imageUploaded = false;
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -40,7 +41,8 @@ namespace CThru
             this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             this.MaximizeBox = false;
             this.TopMost = true;
-            radioButton100P.Checked = true;
+            this.Icon = CThru.Properties.Resources.icon;
+            this.Text = "CThru - Enable/Disable clickable through (Alt+G)";
         }
 
         private void buttonImageClipboard_Click(object sender, EventArgs e)
@@ -52,52 +54,46 @@ namespace CThru
             }
         }
 
-        private void buttonDec10P_Click(object sender, EventArgs e)
-        {
-            actualSizePercentage -= 10;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
-            setImage(actualImage);
-        }
-
         private void buttonDec5P_Click(object sender, EventArgs e)
         {
-            actualSizePercentage -= 5;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
-            setImage(actualImage);
+            setZoom(actualSizePercentage - 5);
         }
 
-        private void buttonRed1P_Click(object sender, EventArgs e)
+        private void buttonDec1P_Click(object sender, EventArgs e)
         {
-            actualSizePercentage--;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
-            setImage(actualImage);
+            setZoom(actualSizePercentage - 1);
         }
 
         private void buttonInc1P_Click(object sender, EventArgs e)
         {
-            actualSizePercentage++;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
-            setImage(actualImage);
+            setZoom(actualSizePercentage + 1);
         }
 
         private void buttonInc5P_Click(object sender, EventArgs e)
         {
-            actualSizePercentage += 5;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
-            setImage(actualImage);
-        }
-
-        private void buttonInc10P_Click(object sender, EventArgs e)
-        {
-            actualSizePercentage += 10;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
-            setImage(actualImage);
+            setZoom(actualSizePercentage + 5);
         }
         private void setImage(Image image)
         {
             actualImage = image;
             pictureBox.Size = new Size(actualImage.Width, actualImage.Height);
             pictureBox.Image = actualImage;
+            imageUploaded = true;
+            buttonsState();
+        }
+        private void setZoom(int change)
+        {
+            actualSizePercentage = change;
+            trackBar1.Value = actualSizePercentage;
+            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
+            setImage(actualImage);
+        }
+        private void buttonsState()
+        {
+            buttonDec5P.Enabled = imageUploaded;
+            buttonDec1P.Enabled = imageUploaded;
+            buttonInc1P.Enabled = imageUploaded;
+            buttonInc5P.Enabled = imageUploaded;
         }
         public static Image ScaleByPercent(Image imgPhoto, int Percent)
         {
@@ -155,33 +151,52 @@ namespace CThru
             SetWindowLong(this.Handle, GWL_EXSTYLE, style & ~WS_EX_TRANSPARENT);
         }
 
-        private void radioButton100P_CheckedChanged(object sender, EventArgs e)
+        private void setOpacity()
+        {
+            this.Opacity = opacity;
+        }
+
+        private void fromClipboardToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            clipboardImage = Clipboard.GetImage();
+            if (clipboardImage != null)
+            {
+                setImage(clipboardImage);
+            }
+        }
+
+        private void tool100PStripMenuItem_Click(object sender, EventArgs e)
         {
             opacity = 1.0f;
             setOpacity();
         }
 
-        private void radioButton75P_CheckedChanged(object sender, EventArgs e)
+        private void tool75PStripMenuItem_Click(object sender, EventArgs e)
         {
             opacity = 0.75f;
             setOpacity();
         }
 
-        private void radioButton50P_CheckedChanged(object sender, EventArgs e)
+        private void tool50PStripMenuItem_Click(object sender, EventArgs e)
         {
             opacity = 0.5f;
             setOpacity();
         }
 
-        private void radioButton25P_CheckedChanged(object sender, EventArgs e)
+        private void tool25PStripMenuItem_Click(object sender, EventArgs e)
         {
             opacity = 0.25f;
             setOpacity();
         }
 
-        private void setOpacity()
+        private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            this.Opacity = opacity;
+            setZoom(trackBar1.Value);
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
