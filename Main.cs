@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,12 +19,14 @@ namespace CThru
 {
     public partial class Main : Form
     {
-        private Image clipboardImage;
+        private Image image;
         private Image actualImage;
         private int actualSizePercentage = 100;
         private float opacity = 1.0f;
         private bool nowClickableThrough = false;
         private bool imageUploaded = false;
+        public static readonly List<string> imageExtensions = new List<string> { ".JPG", ".JPEG", ".BMP", ".GIF", ".PNG" };
+
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -47,10 +50,10 @@ namespace CThru
 
         private void buttonImageClipboard_Click(object sender, EventArgs e)
         {
-            clipboardImage = Clipboard.GetImage();
-            if (clipboardImage != null)
+            image = Clipboard.GetImage();
+            if (image != null)
             {
-                setImage(clipboardImage);
+                setImage(image);
             }
         }
 
@@ -85,7 +88,7 @@ namespace CThru
         {
             actualSizePercentage = change;
             trackBar1.Value = actualSizePercentage;
-            actualImage = ScaleByPercent(clipboardImage, actualSizePercentage);
+            actualImage = ScaleByPercent(image, actualSizePercentage);
             setImage(actualImage);
         }
         private void buttonsState()
@@ -158,10 +161,10 @@ namespace CThru
 
         private void fromClipboardToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            clipboardImage = Clipboard.GetImage();
-            if (clipboardImage != null)
+            image = Clipboard.GetImage();
+            if (image != null)
             {
-                setImage(clipboardImage);
+                setImage(image);
             }
         }
 
@@ -194,9 +197,20 @@ namespace CThru
             setZoom(trackBar1.Value);
         }
 
-        private void Main_Load(object sender, EventArgs e)
+        private void fromFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Title = "Open Image File";
+            dialog.Filter = "Image Files(*.jpg; *.jpeg; *.gif; *.bmp; *.png)|*.jpg; *.jpeg; *.gif; *.bmp; *.png";
+            if (dialog.ShowDialog() == DialogResult.OK && imageExtensions.Contains(Path.GetExtension(dialog.FileName).ToUpperInvariant()))
+            {
+                image = Image.FromFile(dialog.FileName);
+                setImage(image);
+            }
+            else
+            {
+                MessageBox.Show("The file is not selected or has the wrong extension");
+            }
         }
     }
 }
